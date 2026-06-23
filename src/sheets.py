@@ -112,7 +112,8 @@ def load_credentials(
     token_path = Path(token_path) if token_path else Path(".google_token.json")
 
     if token_path.exists():
-        creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
+        token_data = token_path.read_text(encoding="utf-8-sig")
+        creds = Credentials.from_authorized_user_info(json.loads(token_data), SCOPES)
     else:
         creds = None
 
@@ -120,9 +121,8 @@ def load_credentials(
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                str(client_secrets_path), SCOPES
-            )
+            client_data = pathlib.Path(client_secrets_path).read_text(encoding="utf-8-sig")
+            flow = InstalledAppFlow.from_client_config(json.loads(client_data), SCOPES)
             creds = flow.run_local_server(port=0)
         token_path.write_text(creds.to_json(), encoding="utf-8")
 
