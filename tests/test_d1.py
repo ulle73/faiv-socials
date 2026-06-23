@@ -12,11 +12,6 @@ def test_build_d1_store_returns_none_when_cloudflare_d1_is_not_configured():
         output_folder_id=None,
         asset_root_folder_id=None,
         notify_email="test@example.com",
-        smtp_host=None,
-        smtp_port=587,
-        smtp_username=None,
-        smtp_password=None,
-        smtp_from=None,
     )
 
     assert build_d1_store(app_config) is None

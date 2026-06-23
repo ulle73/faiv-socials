@@ -49,7 +49,6 @@ Projektet anv\u00e4nder OAuth user-login, inte service account. Det inneb\u00e4r
   - GOOGLE_CLIENT_SECRETS_JSON
   - GOOGLE_TOKEN_JSON
   - GOOGLE_SPREADSHEET_ID
-  - NOTIFY_EMAIL
 - F\u00f6r Cloudflare-lagring:
   - R2_BUCKET
   - R2_ENDPOINT eller R2_ACCOUNT_ID

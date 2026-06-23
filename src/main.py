@@ -117,7 +117,6 @@ def main() -> int:
                 workspace_client,
                 spreadsheet_id=spreadsheet_id,
                 watchlist_path=watchlist_path,
-                notify_email=app_config.notify_email or "",
             )
             if app_config.asset_root_folder_id:
                 count = sync_asset_library(workspace_client, spreadsheet_id, app_config.asset_root_folder_id)

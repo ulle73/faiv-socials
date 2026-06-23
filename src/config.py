@@ -35,11 +35,6 @@ class AppConfig:
     output_folder_id: str | None
     asset_root_folder_id: str | None
     notify_email: str | None
-    smtp_host: str | None
-    smtp_port: int
-    smtp_username: str | None
-    smtp_password: str | None
-    smtp_from: str | None
     r2_bucket: str | None = None
     r2_endpoint: str | None = None
     r2_access_key_id: str | None = None
@@ -66,8 +61,6 @@ class RuntimeSettings:
     def from_sheet(cls, values: dict[str, str], app_config: AppConfig) -> "RuntimeSettings":
         merged = {**DEFAULT_SETTINGS, **values}
         notify_email = (merged.get("notify_email") or app_config.notify_email or "").strip()
-        if not notify_email:
-            raise ConfigError("Settings saknar notify_email. Sätt värdet i Settings-fliken eller NOTIFY_EMAIL.")
 
         return cls(
             analysis_model=merged["analysis_model"],
@@ -104,11 +97,6 @@ def load_app_config(
         output_folder_id=config_values.get("GOOGLE_OUTPUT_FOLDER_ID"),
         asset_root_folder_id=config_values.get("GOOGLE_ASSET_ROOT_FOLDER_ID"),
         notify_email=config_values.get("NOTIFY_EMAIL"),
-        smtp_host=config_values.get("SMTP_HOST"),
-        smtp_port=int(config_values.get("SMTP_PORT", "587")),
-        smtp_username=config_values.get("SMTP_USERNAME"),
-        smtp_password=config_values.get("SMTP_PASSWORD"),
-        smtp_from=config_values.get("SMTP_FROM"),
         r2_bucket=resolve_r2_bucket(config_values),
         r2_endpoint=resolve_r2_endpoint(config_values),
         r2_access_key_id=first_present(config_values, "R2_ACCESS_KEY_ID", "S3_ACCESS_KEY_ID"),

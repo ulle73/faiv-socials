@@ -20,12 +20,8 @@ def bootstrap_workspace(
     workspace_client: GoogleWorkspaceClient,
     spreadsheet_id: str,
     watchlist_path: Path,
-    notify_email: str,
 ) -> None:
     workspace_client.ensure_tabs(spreadsheet_id)
-    settings = workspace_client.read_settings(spreadsheet_id)
-    if "notify_email" not in settings:
-        workspace_client.upsert_settings(spreadsheet_id, {"notify_email": notify_email})
     _sync_sources(workspace_client, spreadsheet_id, watchlist_path)
 
 
@@ -221,14 +217,10 @@ def run_pipeline(
 
     delivery = DeliveryService(workspace_client, app_config)
     try:
-        summary.doc_url = delivery.create_daily_document(final_proposals, summary, runtime.notify_email)
+        summary.doc_url = delivery.create_daily_document(final_proposals, summary)
     except Exception as error:  # noqa: BLE001
         summary.errors.append(f"Kunde inte skapa Google Doc: {error}")
 
-    try:
-        delivery.send_status_email(runtime.notify_email, summary)
-    except Exception as error:  # noqa: BLE001
-        summary.errors.append(f"Kunde inte skicka e-post: {error}")
     summary.status = "completed_with_errors" if summary.errors else "completed"
 
     workspace_client.append_rows(
