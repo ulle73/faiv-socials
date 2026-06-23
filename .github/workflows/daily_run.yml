@@ -1,4 +1,5 @@
 name: FAIV Social Media Daily Run
+# Daily automation pipeline for FAIV social media inspiration
 
 on:
   workflow_dispatch:
