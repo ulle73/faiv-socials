@@ -133,6 +133,12 @@ class ApifyCollector:
         )
 
 
+def _normalize_apify_date(value: str) -> str:
+    """Apify onlyPostsNewerThan requires Z suffix or no timezone, not +00:00."""
+    normalized = value.strip().replace("+00:00", "Z")
+    return normalized
+
+
 def build_actor_input(
     sources: Iterable[SourceAccount],
     posts_per_account: int,
@@ -146,10 +152,9 @@ def build_actor_input(
     }
     if only_posts_newer_than:
         cutoff_dates = list({date for date in only_posts_newer_than.values() if date})
-        if len(cutoff_dates) == 1:
-            input_dict["onlyPostsNewerThan"] = cutoff_dates[0]
-        elif len(cutoff_dates) > 1:
-            input_dict["onlyPostsNewerThan"] = min(cutoff_dates)
+        if cutoff_dates:
+            oldest = min(cutoff_dates)
+            input_dict["onlyPostsNewerThan"] = _normalize_apify_date(oldest)
     return input_dict
 
 
