@@ -68,7 +68,8 @@ class CandidatePost:
     visual_transferability: int
     novelty: int
     total_score: int
-    faiv_category: str
+    faiv_content_category: str
+    service_area: str
     why_it_works: str
     originality_risk: str
 
@@ -84,6 +85,18 @@ class Proposal:
     recommended_asset_folder: str
     fallback_image_prompt: str
     why_selected: str
+    faiv_content_category: str = ""
+    service_area: str = ""
+    status: str = "needs_edit"
+    overlay_text: str = ""
+    carousel_structure: list[dict[str, Any]] = field(default_factory=list)
+    image_plan: str = ""
+    asset_match_confidence: float = 0.0
+    selected_asset: str = ""
+    production_note: str = ""
+    originality_risk: str = ""
+    drive_folder_url: str = ""
+    dedupe_key: str = ""
 
 
 @dataclass(slots=True)

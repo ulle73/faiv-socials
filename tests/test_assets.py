@@ -21,7 +21,8 @@ def _proposal(recommended_asset_folder: str, category: str) -> Proposal:
         visual_transferability=14,
         novelty=8,
         total_score=88,
-        faiv_category=category,
+        faiv_content_category=category,
+        service_area="ovrigt",
         why_it_works="Tydligt värde.",
         originality_risk="låg",
     )

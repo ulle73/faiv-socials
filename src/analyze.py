@@ -1,10 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from typing import Iterable
 
 import requests
 
+from src.config import FAIV_CONTENT_CATEGORIES, SERVICE_AREAS
 from src.models import CandidatePost, CollectedPost
 from src.utils import chunked, parse_json_payload
 
@@ -89,7 +90,8 @@ def analysis_schema() -> dict:
                 "visual_transferability": {"type": "integer"},
                 "novelty": {"type": "integer"},
                 "total": {"type": "integer"},
-                "faiv_category": {"type": "string"},
+                "faiv_content_category": {"type": "string"},
+                "service_area": {"type": "string"},
                 "why_it_works": {"type": "string"},
                 "originality_risk": {"type": "string"},
             },
@@ -101,7 +103,8 @@ def analysis_schema() -> dict:
                 "visual_transferability",
                 "novelty",
                 "total",
-                "faiv_category",
+                "faiv_content_category",
+                "service_area",
                 "why_it_works",
                 "originality_risk",
             ],
@@ -136,10 +139,19 @@ def build_analysis_prompt(posts: Iterable[CollectedPost]) -> str:
         for post in posts
     ]
     return (
-        "Du är FAIVs innehållsanalytiker. Bedöm dessa Instagram-poster för hur väl de kan bli svenska FAIV-inlägg. "
-        "FAIV säljer grillkit, extrabelysning, arbetsljus, bilinredning, servicebilar och husbil/offgrid till svenska fordonsägare. "
-        "Använd all tillgänglig data: engagement (likes, kommentarer), hashtaggar, hook-signal, post-typ och caption för att bedöma. "
-        "Ranka inte på popularitet — ranka på om inlägget kan bli ett svenskt, offertdrivande FAIV-inlägg. "
+        "Du ar FAIVs innehallsanalytiker. Bedom dessa Instagram-poster for hur val de kan bli svenska FAIV-inlagg. "
+        "FAIV saljer grillkit, extrabelysning, arbetsljus, bilinredning, servicebilar och husbil/offgrid till svenska fordonsagare. "
+        "Anvand all tillganglig data: engagement (likes, kommentarer), hashtaggar, hook-signal, post-typ och caption for att bedoma. "
+        "Ranka inte pa popularitet -- ranka pa om inlagget kan bli ett svenskt, offertdrivande FAIV-inlagg.\n\n"
+        "VIKTIGA KATEGORIREGLER:\n"
+        "faiv_content_category far endast vara en av: "
+        + ", ".join(FAIV_CONTENT_CATEGORIES)
+        + ".\n"
+        "service_area ska vara ett separat falt och far vara: "
+        + ", ".join(SERVICE_AREAS)
+        + ".\n"
+        "faiv_content_category far ALDRIG vara 'servicebil', 'extrabelysning', 'arbetsljus', 'grillkit', 'verkstad' eller annat tjanteomrade.\n"
+        "service_area far ALDRIG vara 'Forvandlingar', 'Kundbyggen', 'Ratt val' eller 'Bakom bygget'.\n"
         "Returnera bara JSON enligt schemat.\n\nPoster:\n"
         f"{json.dumps(serialized_posts, ensure_ascii=False, indent=2)}"
     )
@@ -168,7 +180,8 @@ def parse_analysis_response(
                 visual_transferability=int(row["visual_transferability"]),
                 novelty=int(row["novelty"]),
                 total_score=int(row["total"]),
-                faiv_category=row["faiv_category"],
+                faiv_content_category=row["faiv_content_category"],
+                service_area=row.get("service_area", "ovrigt"),
                 why_it_works=row["why_it_works"],
                 originality_risk=row["originality_risk"],
             )
@@ -189,7 +202,7 @@ def analyze_posts(
     for batch in chunked(post_list, 20):
         raw_response = client.structured_chat(
             model=model,
-            system_prompt="Du returnerar strikt JSON och fokuserar på svensk B2B/B2C-relevans för FAIV.",
+            system_prompt="Du returnerar strikt JSON och fokuserar pa svensk B2B/B2C-relevans for FAIV. faiv_content_category ar alltid en av de fyra innehallskategorierna, service_area ar alltid ett tjanteomrade.",
             user_prompt=build_analysis_prompt(batch),
             schema_name="faiv_analysis_batch",
             schema=analysis_schema(),

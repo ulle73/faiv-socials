@@ -20,6 +20,76 @@ DEFAULT_SETTINGS = {
     "apify_actor_id": "apify/instagram-post-scraper",
 }
 
+FAIV_CONTENT_CATEGORIES = [
+    "Forvandlingar",
+    "Kundbyggen",
+    "Ratt val",
+    "Bakom bygget",
+]
+
+SERVICE_AREAS = [
+    "grillkit",
+    "extrabelysning",
+    "arbetsljus",
+    "bilinredning",
+    "servicebilar",
+    "husbil-offgrid",
+    "verkstad",
+    "ovrigt",
+]
+
+PROPOSAL_STATUSES = [
+    "ready_to_post",
+    "ready_to_design",
+    "needs_photo",
+    "needs_ai_image",
+    "needs_edit",
+    "discarded",
+]
+
+APPROVED_PRODUCTS: list[str] = []
+
+ALLOWED_CTAS = [
+    "Hor av dig till oss",
+    "Kontakta oss for offert",
+    "Boka tid",
+    "Las mer pa faiv.se",
+    "Skicka ett DM",
+    "Se hela sortimentet",
+]
+
+DEFAULT_TONE_RULES = [
+    "Premium, konkret, tryggt, svenskt och praktiskt",
+    "Undvik generisk AI-saljcopy",
+    "Undvik overdrivna emojis",
+    "Skriv som FAIV, inte som en konkurrent",
+    "Anvand inte specifika produktnamn om de inte ar godkanda",
+]
+
+STATUS_RULES = {
+    "ready_to_post": "Kraver vald FAIV-asset, genererad bild eller fardig designfil",
+    "ready_to_design": "Text, format och slide-struktur klar men bild/design behover produceras",
+    "needs_photo": "Kraver riktiga FAIV-bilder, sarskilt Kundbyggen, verkstadsjobb och fore/efter-case",
+    "needs_ai_image": "Ingen bra FAIV-bild finns men iden kan losas med AI-konceptbild",
+    "needs_edit": "Iden ar lovande men copy, vinkel eller bildplan behover mannisklig justering",
+    "discarded": "Svag, irrelevant eller for riskabel kandidat",
+}
+
+ASSET_CONFIDENCE_THRESHOLD = 0.65
+MIN_AI_PROMPT_LENGTH = 200
+REQUIRE_DETAILED_AI_PROMPTS = True
+DEFAULT_FEED_FORMAT = "4:5"
+DEFAULT_STORY_FORMAT = "9:16"
+
+FORBIDDEN_COPY_PHRASES = [
+    "vi monterade",
+    "vi byggde",
+    "vi utrustade",
+    "den har bilen byggde vi",
+    "vi har installerat",
+    "vi har byggt",
+]
+
 
 class ConfigError(RuntimeError):
     pass

@@ -149,7 +149,8 @@ def run_pipeline(
                 "visual_transferability": candidate.visual_transferability,
                 "novelty": candidate.novelty,
                 "total_score": candidate.total_score,
-                "faiv_category": candidate.faiv_category,
+                "faiv_content_category": candidate.faiv_content_category,
+                "service_area": candidate.service_area,
                 "why_it_works": candidate.why_it_works,
                 "originality_risk": candidate.originality_risk,
                 "batch_date": candidate.source_post.batch_date,
@@ -196,6 +197,10 @@ def run_pipeline(
                 "approved": "",
                 "used": "",
                 "run_date": run_date,
+                "faiv_content_category": proposal.faiv_content_category,
+                "service_area": proposal.service_area,
+                "status": proposal.status,
+                "drive_folder_url": proposal.drive_folder_url,
             }
             for proposal in final_proposals
         ],
@@ -216,6 +221,10 @@ def run_pipeline(
     )
 
     delivery = DeliveryService(workspace_client, app_config)
+    try:
+        delivery.create_post_packages(final_proposals, run_date)
+    except Exception as error:  # noqa: BLE001
+        summary.errors.append(f"Kunde inte skapa Drive-postpaket: {error}")
     try:
         summary.doc_url = delivery.create_daily_document(final_proposals, summary)
     except Exception as error:  # noqa: BLE001

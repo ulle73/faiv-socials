@@ -22,7 +22,7 @@ def match_asset_folder(proposal: Proposal, asset_rows: Iterable[dict[str, str]])
             by_folder[folder].append(row)
 
     requested_folder = (proposal.recommended_asset_folder or "").strip()
-    fallback_folder = FAIV_CATEGORY_FALLBACKS.get(proposal.source_candidate.faiv_category, "verkstad")
+    fallback_folder = FAIV_CATEGORY_FALLBACKS.get(proposal.source_candidate.faiv_content_category, "verkstad")
     chosen_folder = requested_folder if requested_folder in by_folder else fallback_folder
     image_count = len(by_folder.get(chosen_folder, []))
 

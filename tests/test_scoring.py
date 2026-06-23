@@ -16,7 +16,7 @@ def test_parse_analysis_response_filters_by_min_score_and_accepts_markdown_wrapp
     "visual_transferability": 12,
     "novelty": 8,
     "total": 83,
-    "faiv_category": "Förvandlingar",
+    "faiv_content_category": "Förvandlingar",
     "why_it_works": "Tydlig före/efter och stark produktvinkel.",
     "originality_risk": "låg"
   },
@@ -28,7 +28,8 @@ def test_parse_analysis_response_filters_by_min_score_and_accepts_markdown_wrapp
     "visual_transferability": 6,
     "novelty": 4,
     "total": 40,
-    "faiv_category": "Bakom bygget",
+    "faiv_content_category": "Bakom bygget",
+        "service_area": "verkstad",
     "why_it_works": "För svag för FAIV.",
     "originality_risk": "medel"
   }
@@ -61,7 +62,7 @@ def test_parse_analysis_response_filters_by_min_score_and_accepts_markdown_wrapp
 
     assert len(candidates) == 1
     assert candidates[0].total_score == 83
-    assert candidates[0].faiv_category == "Förvandlingar"
+    assert candidates[0].faiv_content_category == "Förvandlingar"
     assert candidates[0].source_post.post_url == "https://example.com/post-1"
 
 

@@ -56,6 +56,8 @@ class CloudflareD1Store:
         schema_sql = self.schema_path.read_text(encoding="utf-8")
         self._execute_query(schema_sql)
         self._ensure_collected_posts_columns()
+        self._ensure_candidates_columns()
+        self._ensure_proposals_columns()
 
     def get_existing_post_urls(self, source_handles: Iterable[str] | None = None) -> set[str]:
         handles = [handle for handle in source_handles or [] if handle]
@@ -385,9 +387,9 @@ class CloudflareD1Store:
                     "sql": """
                         INSERT INTO candidates (
                             candidate_key, run_id, post_url, source_handle, faiv_fit, lead_potential,
-                            hook_strength, visual_transferability, novelty, total_score, faiv_category,
-                            why_it_works, originality_risk, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            hook_strength, visual_transferability, novelty, total_score, faiv_content_category,
+                            service_area, why_it_works, originality_risk, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(candidate_key) DO UPDATE SET
                             faiv_fit = excluded.faiv_fit,
                             lead_potential = excluded.lead_potential,
@@ -395,7 +397,8 @@ class CloudflareD1Store:
                             visual_transferability = excluded.visual_transferability,
                             novelty = excluded.novelty,
                             total_score = excluded.total_score,
-                            faiv_category = excluded.faiv_category,
+                            faiv_content_category = excluded.faiv_content_category,
+                            service_area = excluded.service_area,
                             why_it_works = excluded.why_it_works,
                             originality_risk = excluded.originality_risk
                     """,
@@ -410,7 +413,8 @@ class CloudflareD1Store:
                         candidate.visual_transferability,
                         candidate.novelty,
                         candidate.total_score,
-                        candidate.faiv_category,
+                        candidate.faiv_content_category,
+                        candidate.service_area,
                         candidate.why_it_works,
                         candidate.originality_risk,
                         utc_now_iso(),
@@ -429,7 +433,8 @@ class CloudflareD1Store:
                     c.visual_transferability,
                     c.novelty,
                     c.total_score,
-                    c.faiv_category,
+                    c.faiv_content_category,
+                    c.service_area,
                     c.why_it_works,
                     c.originality_risk,
                     p.instagram_post_id,
@@ -484,7 +489,8 @@ class CloudflareD1Store:
                     visual_transferability=int(row["visual_transferability"]),
                     novelty=int(row["novelty"]),
                     total_score=int(row["total_score"]),
-                    faiv_category=str(row["faiv_category"]),
+                    faiv_content_category=str(row["faiv_content_category"]),
+                    service_area=str(row.get("service_area", "")),
                     why_it_works=str(row["why_it_works"]),
                     originality_risk=str(row["originality_risk"]),
                 )
@@ -503,8 +509,9 @@ class CloudflareD1Store:
                         INSERT INTO proposals (
                             proposal_key, run_id, post_url, source_handle, hook, caption, cta,
                             format, image_brief, recommended_asset_folder, fallback_image_prompt,
-                            why_selected, approved, used, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
+                            why_selected, faiv_content_category, service_area, status, drive_folder_url,
+                            approved, used, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
                         ON CONFLICT(proposal_key) DO UPDATE SET
                             hook = excluded.hook,
                             caption = excluded.caption,
@@ -513,7 +520,11 @@ class CloudflareD1Store:
                             image_brief = excluded.image_brief,
                             recommended_asset_folder = excluded.recommended_asset_folder,
                             fallback_image_prompt = excluded.fallback_image_prompt,
-                            why_selected = excluded.why_selected
+                            why_selected = excluded.why_selected,
+                            faiv_content_category = excluded.faiv_content_category,
+                            service_area = excluded.service_area,
+                            status = excluded.status,
+                            drive_folder_url = excluded.drive_folder_url
                     """,
                     "params": [
                         proposal_key(run_id, post_url),
@@ -528,6 +539,10 @@ class CloudflareD1Store:
                         proposal.recommended_asset_folder,
                         proposal.fallback_image_prompt,
                         proposal.why_selected,
+                        proposal.faiv_content_category,
+                        proposal.service_area,
+                        proposal.status,
+                        proposal.drive_folder_url,
                         utc_now_iso(),
                     ],
                 }
@@ -541,6 +556,29 @@ class CloudflareD1Store:
             if column_name in existing:
                 continue
             self._execute_query(f"ALTER TABLE collected_posts ADD COLUMN {column_name} {column_def}")
+
+    def _ensure_candidates_columns(self) -> None:
+        rows = self._execute_query("PRAGMA table_info(candidates)")
+        existing = {str(row.get("name") or "") for row in rows}
+        migrations = {
+            "service_area": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column_name, column_def in migrations.items():
+            if column_name not in existing:
+                self._execute_query(f"ALTER TABLE candidates ADD COLUMN {column_name} {column_def}")
+
+    def _ensure_proposals_columns(self) -> None:
+        rows = self._execute_query("PRAGMA table_info(proposals)")
+        existing = {str(row.get("name") or "") for row in rows}
+        migrations = {
+            "faiv_content_category": "TEXT NOT NULL DEFAULT ''",
+            "service_area": "TEXT NOT NULL DEFAULT ''",
+            "status": "TEXT NOT NULL DEFAULT 'needs_edit'",
+            "drive_folder_url": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column_name, column_def in migrations.items():
+            if column_name not in existing:
+                self._execute_query(f"ALTER TABLE proposals ADD COLUMN {column_name} {column_def}")
 
     def _execute_batch(self, batch: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not batch:
