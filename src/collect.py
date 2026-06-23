@@ -82,7 +82,7 @@ class ApifyCollector:
                 f"{APIFY_BASE_URL}/acts/{self.actor_id}/run-sync-get-dataset-items",
                 params={"token": self.api_token, "clean": "1", "format": "json"},
                 json=payload,
-                timeout=120,
+                timeout=300,
             )
             response.raise_for_status()
             items = response.json()
@@ -112,15 +112,14 @@ class ApifyCollector:
                 else:
                     source.status = "tom"
         except requests.HTTPError as error:
+            status_code = error.response.status_code if error.response else None
             for source in source_list:
-                source.status = "blockerad"
-                blocked_accounts.append(source.handle or source.lookup_term)
-            warnings.append(f"Apify-svar {error.response.status_code if error.response else 'okänt fel'}.")
+                source.status = "fel"
+            warnings.append(f"Apify HTTP-fel {status_code or 'okänt'}: {error}")
         except Exception as error:  # noqa: BLE001
             for source in source_list:
-                source.status = "blockerad"
-                blocked_accounts.append(source.handle or source.lookup_term)
-            warnings.append(str(error))
+                source.status = "fel"
+            warnings.append(f"Apify-anrop misslyckades: {error}")
 
         if throttle_seconds > 0:
             time.sleep(throttle_seconds + random.uniform(0.0, 1.0))

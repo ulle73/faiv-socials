@@ -287,10 +287,10 @@ def test_collect_posts_for_sources_marks_sources_blocked_when_raw_archive_fails(
     )
 
     assert outcome.posts == []
-    assert outcome.blocked_accounts == ["f.a.i.v.ab"]
+    assert outcome.blocked_accounts == []
     assert outcome.raw_archive_key is None
-    assert outcome.warnings == ["R2-arkivering misslyckades"]
-    assert source.status == "blockerad"
+    assert "R2-arkivering misslyckades" in outcome.warnings[0]
+    assert source.status == "fel"
 
 
 def test_normalize_post_item_extracts_analysis_fields_from_apify_basic_data():
