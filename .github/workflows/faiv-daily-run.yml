@@ -23,12 +23,12 @@ jobs:
           python -m pip install .
 
       - name: Write Google credentials
-        run: |
-          printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > client_secrets.json
-          printf '%s' "$GOOGLE_TOKEN_JSON" > .google_token.json
         env:
           GOOGLE_CLIENT_SECRETS_JSON: ${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}
           GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN_JSON }}
+        run: |
+          python -c "import os; open('client_secrets.json','w').write(os.environ['GOOGLE_CLIENT_SECRETS_JSON'])"
+          python -c "import os; open('.google_token.json','w').write(os.environ['GOOGLE_TOKEN_JSON'])"
 
       - name: Check Stockholm time
         id: stockholm-time
