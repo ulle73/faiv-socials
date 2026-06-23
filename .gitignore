@@ -1,0 +1,9 @@
+.codegraph/
+.pytest_cache/
+__pycache__/
+*.pyc
+.venv/
+.env
+.google_token.json
+client_secrets.json
+_verify_google*.py
