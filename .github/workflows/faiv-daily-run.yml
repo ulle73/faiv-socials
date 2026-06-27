@@ -3,7 +3,7 @@ name: FAIV Daily Run
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 5,6 * * 1-5"
+    - cron: "0 5 * * *"
 
 jobs:
   run-pipeline:
@@ -30,23 +30,7 @@ jobs:
           python -c "import os; open('client_secrets.json','w').write(os.environ['GOOGLE_CLIENT_SECRETS_JSON'])"
           python -c "import os; open('.google_token.json','w').write(os.environ['GOOGLE_TOKEN_JSON'])"
 
-      - name: Check Stockholm time
-        id: stockholm-time
-        run: |
-          python - <<'PY'
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-          import os
-          now = datetime.now(ZoneInfo("Europe/Stockholm"))
-          should_run = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" or now.hour == 7
-          print(f"now={now.isoformat()}")
-          with open("stockholm_time.env", "w", encoding="utf-8") as fh:
-              fh.write(f"SHOULD_RUN={'true' if should_run else 'false'}\n")
-          PY
-          cat stockholm_time.env >> "$GITHUB_ENV"
-
       - name: Run pipeline
-        if: env.SHOULD_RUN == 'true'
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
