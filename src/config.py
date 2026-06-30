@@ -113,6 +113,7 @@ class AppConfig:
     cloudflare_account_id: str | None = None
     cloudflare_api_token: str | None = None
     cloudflare_d1_database_id: str | None = None
+    discord_webhook_url: str | None = None
     timezone: ZoneInfo = STOCKHOLM_TZ
 
 
@@ -175,6 +176,7 @@ def load_app_config(
         cloudflare_account_id=first_present(config_values, "CLOUDFLARE_ACCOUNT_ID"),
         cloudflare_api_token=first_present(config_values, "CLOUDFLARE_API_TOKEN"),
         cloudflare_d1_database_id=first_present(config_values, "CLOUDFLARE_D1_DATABASE_ID"),
+        discord_webhook_url=first_present(config_values, "DISCORD_WEBHOOK_URL"),
     )
 
 

@@ -69,6 +69,28 @@ class DeliveryService:
 
         return urls
 
+    def deliver_to_discord(
+        self,
+        proposals: list[Proposal],
+        summary: RunSummary,
+        discord_sender,
+    ) -> list[str]:
+        if not proposals:
+            message = _render_no_proposals_status(summary)
+            discord_sender.send_message(message)
+            return [message]
+
+        sent: list[str] = []
+        for index, proposal in enumerate(proposals, start=1):
+            message = _render_discord_proposal_message(proposal, index)
+            discord_sender.send_message(message)
+            sent.append(message)
+
+        status_message = _render_discord_completion_status(summary)
+        discord_sender.send_message(status_message)
+        sent.append(status_message)
+        return sent
+
     def _ensure_folder(self, name: str, parent_id: str) -> str:
         existing = self.workspace_client.drive_service.files().list(
             q=f"name = '{name}' and '{parent_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
@@ -288,4 +310,60 @@ def _render_document_body(proposals: list[Proposal], summary: RunSummary) -> str
         lines.append(f"Raw archive: {summary.raw_archive_key}")
     lines.append("")
 
+    return "\n".join(lines)
+
+
+def _render_discord_proposal_message(proposal: Proposal, index: int) -> str:
+    source_post = proposal.source_candidate.source_post
+    lines = [
+        f"**Forslag {index} - {proposal.faiv_content_category} / {proposal.service_area}**",
+        f"Kalla: @{source_post.source_handle}",
+        f"Status: {proposal.status}",
+        "",
+        f"**Varfor den valdes:** {proposal.why_selected}",
+        f"**Hook:** {proposal.hook}",
+        "",
+        "**Caption:**",
+        proposal.caption,
+        "",
+        f"**CTA:** {proposal.cta}",
+        f"**Format:** {proposal.format}",
+        f"**Bildbrief:** {proposal.image_brief}",
+        f"**Bildmapp:** `{proposal.recommended_asset_folder or 'okand'}/`",
+    ]
+    if proposal.drive_folder_url:
+        lines.append(f"**Drive:** {proposal.drive_folder_url}")
+    return "\n".join(lines)
+
+
+def _render_discord_completion_status(summary: RunSummary) -> str:
+    lines = [
+        f"**Korning klar - {summary.run_date}**",
+        (
+            f"Batch: {summary.active_batch} | Konton granskade: {summary.source_count} | "
+            f"Hamtade poster: {summary.collected_count} | Kandidater: {summary.candidate_count} | "
+            f"Forslag: {summary.proposal_count}"
+        ),
+    ]
+    if summary.doc_url:
+        lines.append(f"Doc: {summary.doc_url}")
+    if summary.warnings:
+        lines.append(f"Varningar: {' | '.join(summary.warnings)}")
+    if summary.errors:
+        lines.append(f"Fel: {' | '.join(summary.errors)}")
+    return "\n".join(lines)
+
+
+def _render_no_proposals_status(summary: RunSummary) -> str:
+    lines = [
+        f"**Inga postpaket - {summary.run_date}**",
+        (
+            f"Batch: {summary.active_batch} | Konton granskade: {summary.source_count} | "
+            f"Hamtade poster: {summary.collected_count} | Kandidater: {summary.candidate_count}"
+        ),
+    ]
+    if summary.warnings:
+        lines.append(f"Varningar: {' | '.join(summary.warnings)}")
+    if summary.errors:
+        lines.append(f"Fel: {' | '.join(summary.errors)}")
     return "\n".join(lines)

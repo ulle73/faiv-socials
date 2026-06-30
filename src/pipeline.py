@@ -9,6 +9,7 @@ from src.collect import ApifyCollector
 from src.config import AppConfig, RuntimeSettings, today_stockholm
 from src.deliver import DeliveryService
 from src.d1 import build_d1_store
+from src.discord import DiscordWebhookSender
 from src.models import Proposal, RunSummary
 from src.raw_archive import build_raw_archive_client
 from src.sheets import GoogleWorkspaceClient
@@ -229,6 +230,17 @@ def run_pipeline(
         summary.doc_url = delivery.create_daily_document(final_proposals, summary)
     except Exception as error:  # noqa: BLE001
         summary.errors.append(f"Kunde inte skapa Google Doc: {error}")
+    if app_config.discord_webhook_url:
+        try:
+            delivery.deliver_to_discord(
+                final_proposals,
+                summary,
+                DiscordWebhookSender(app_config.discord_webhook_url),
+            )
+        except Exception as error:  # noqa: BLE001
+            summary.errors.append(f"Kunde inte leverera till Discord: {error}")
+    else:
+        summary.warnings.append("DISCORD_WEBHOOK_URL saknas - Discord fick ingen leverans.")
 
     summary.status = "completed_with_errors" if summary.errors else "completed"
 
