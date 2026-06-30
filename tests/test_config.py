@@ -38,6 +38,7 @@ def test_load_app_config_reads_values_from_dotenv_file(tmp_path, monkeypatch):
                 "CLOUDFLARE_ACCOUNT_ID=cf-account",
                 "CLOUDFLARE_API_TOKEN=cf-token",
                 "CLOUDFLARE_D1_DATABASE_ID=d1-db-id",
+                "DISCORD_WEBHOOK_URL=https://discord.example/webhook",
             ]
         ),
         encoding="utf-8",
@@ -61,6 +62,7 @@ def test_load_app_config_reads_values_from_dotenv_file(tmp_path, monkeypatch):
     assert config.cloudflare_account_id == "cf-account"
     assert config.cloudflare_api_token == "cf-token"
     assert config.cloudflare_d1_database_id == "d1-db-id"
+    assert config.discord_webhook_url == "https://discord.example/webhook"
 
 
 def test_load_dotenv_values_strips_utf8_bom_from_first_key(tmp_path):
